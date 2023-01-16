@@ -9,6 +9,7 @@ import "@nomiclabs/hardhat-solhint";
 import "@typechain/hardhat";
 import "dotenv/config";
 import "hardhat-deploy";
+import "@nomicfoundation/hardhat-chai-matchers";
 import "solidity-coverage";
 
 const MAINNET_RPC_URL = process.env.ALCHEMY_MAINNET_RPC_URL;
