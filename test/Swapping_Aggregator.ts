@@ -94,6 +94,57 @@ describe("SwappingAggregator", () => {
         expect(daiAfterSwap).to.equal(account1Bal.add(outputDai));
     });
 
+    it("Should execute the multiple swap successfully", async () => {
+        await usdc
+            .connect(account1)
+            .approve(swappingAggregator.address, parseEther("100000000"));
+        await dai
+            .connect(account1)
+            .approve(swappingAggregator.address, parseEther("100000000"));
+        const inputUsdc = parseEther("10");
+        const outputDai = parseEther("8");
+        const outputPopoo = parseEther("5");
+        // create a callData array
+        const callData = [
+            {
+                to: routerV2_Mock.address,
+                data: routerV2_Mock.interface.encodeFunctionData(
+                    "swapExactTokensForTokens",
+                    [
+                        inputUsdc,
+                        outputDai,
+                        [usdc.address, dai.address],
+                        account1.address,
+                        1773875703,
+                    ]
+                ),
+            },
+            {
+                to: routerV2_Mock.address,
+                data: routerV2_Mock.interface.encodeFunctionData(
+                    "swapExactTokensForTokens",
+                    [
+                        outputDai.mul(5),
+                        outputPopoo,
+                        [dai.address, popoo.address],
+                        account1.address,
+                        1773875703,
+                    ]
+                ),
+            },
+        ];
+
+        await swappingAggregator.connect(account1).execute(callData);
+
+        const usdcAfterSwap = await usdc.balanceOf(account1.address);
+        const daiAfterSwap = await dai.balanceOf(account1.address);
+        const poppoAfterSwap = await popoo.balanceOf(account1.address);
+
+        expect(usdcAfterSwap).to.equal(account1Bal.sub(inputUsdc));
+        expect(daiAfterSwap).to.equal(account1Bal.sub(outputDai.mul(4)));
+        expect(poppoAfterSwap).to.equal(account1Bal.add(outputPopoo));
+    });
+
     it("should revert if the selector is wrong", async () => {
         // create a callData array
         const callData = [
